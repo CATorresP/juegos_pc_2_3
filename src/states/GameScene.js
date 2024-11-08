@@ -5,17 +5,18 @@ class GameScene extends Phaser.Scene {
         super("GameScene");
     }
     init() {
-        
+
     }
     create() {
         this.background = this.add.image(0, 0, 'game').setOrigin(0, 0);
         this.style = { font: '30px Arial', fill: '#fff' };
         this.tiempo = this.add.text(0, 0, 'Tiempo', this.style).setOrigin(0, 0);
-        this.puntaje = this.add.text(this.game.config.width, 0, 'Puntaje 0', this.style).setOrigin(1, 0);
+        this.score = 0;
+        this.puntaje = this.add.text(this.game.config.width, 0, 'Puntaje ' + this.score, this.style).setOrigin(1, 0);
         this.colors = ['amarillo', 'verde', 'rojo'];
-
         this.createPlayer();
-
+        this.createEnemies();
+        this.physics.add.collider(this.player, this.enemies, this.enemyCollition, null, this);
     }
     createPlayer() {
         this.cursor = this.input.keyboard.createCursorKeys();
@@ -24,9 +25,11 @@ class GameScene extends Phaser.Scene {
         this.a = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.d = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.player = this.physics.add.sprite(100, 100, 'player').setOrigin(0.5);
-        this.player.body.allowGravity = false;
         this.player.lives = 3;
         this.player.colorId = 4;
+        this.racha = 0;
+        this.multiplicadorDoble = false;
+        this.player.setImmovable(true);
         this.tiempo = this.add.text(0, this.tiempo.height, 'Vidas 3', this.style).setOrigin(0, 0);
         this.anims.create({
             key: 'player',
@@ -55,16 +58,40 @@ class GameScene extends Phaser.Scene {
         });
     }
     createEnemy() {
-        const colorId = Phaser.Math.Between(0, colors.length);
-        let enemy = this.physics.add.sprite(this.game.config.width/2, this.game.config.width/2, this.colors[colorId]).setOrigin(0.5);
+        const colorId = Phaser.Math.Between(0, this.colors.length);
+        let enemy = this.physics.add.sprite(this.game.config.width / 2, this.game.config.width / 2, this.colors[colorId]).setOrigin(0.5);
         enemy.colorId = colorId;
-
         enemy.setPosition(this.game.config.width, Phaser.Math.Between(0, this.game.config.width + enemy.width));
-        enemy.setVelocityX(-100);
         this.enemies.add(enemy);
+        enemy.setVelocityX(-100);
     }
-
-
+    enemyCollition(player, enemy) {
+        if (this.player.colorId == enemy.colorId) {
+            this.racha++;
+            this.score += 10;
+            console.log(this.racha);
+            if (this.racha == 3) {
+                this.multiplicadorDoble = true;
+            }
+            if (this.racha == 5) {
+                if (this.multiplicadorDoble) {
+                    this.score *= 4;
+                    this.multiplicadorDoble = false;
+                } else {
+                    this.score *= 2;
+                }
+            }
+            this.puntaje.setText('Puntaje ' + this.score);
+        } else {
+            this.racha = 0;
+            this.player.lives--;
+            this.tiempo.setText('Vidas ' + this.player.lives);
+            if (this.player.lives == 0) {
+                this.scene.start('MenuScene');
+            }
+        }
+        enemy.destroy();
+    }
     update() {
         if (this.w.isDown) {
             this.player.setVelocityY(-200);
@@ -85,5 +112,7 @@ class GameScene extends Phaser.Scene {
             }
         }
     }
+
+    
 }
 export default GameScene
