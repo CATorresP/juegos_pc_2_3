@@ -8,11 +8,13 @@ class GameScene extends Phaser.Scene {
 
     }
     create() {
-        this.background = this.add.image(0, 0, 'game').setOrigin(0, 0);
+
+        this.background = this.add.tileSprite(0, 0, this.game.config.width, this.game.config.height, 'game').setOrigin(0, 0);
         this.style = { font: '30px Arial', fill: '#fff' };
         this.tiempo = this.add.text(0, 0, 'Tiempo', this.style).setOrigin(0, 0);
         this.score = 0;
         this.puntaje = this.add.text(this.game.config.width, 0, 'Puntaje ' + this.score, this.style).setOrigin(1, 0);
+        this.restartClick = 0;
         this.colors = ['amarillo', 'verde', 'rojo'];
         this.createPlayer();
         this.createEnemies();
@@ -25,6 +27,7 @@ class GameScene extends Phaser.Scene {
         this.a = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.d = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         this.player = this.physics.add.sprite(100, 100, 'player').setOrigin(0.5);
+        this.player.setCollideWorldBounds(true);
         this.player.lives = 3;
         this.player.colorId = 4;
         this.racha = 0;
@@ -50,7 +53,7 @@ class GameScene extends Phaser.Scene {
     }
     createEnemies() {
         this.enemies = this.physics.add.group();
-        this.time.addEvent({
+        this.timerEnemies = this.time.addEvent({
             delay: 2000,
             callback: this.createEnemy,
             callbackScope: this,
@@ -59,9 +62,9 @@ class GameScene extends Phaser.Scene {
     }
     createEnemy() {
         const colorId = Phaser.Math.Between(0, this.colors.length);
-        let enemy = this.physics.add.sprite(this.game.config.width / 2, this.game.config.width / 2, this.colors[colorId]).setOrigin(0.5);
+        let enemy = this.physics.add.sprite(0, 0, this.colors[colorId]).setOrigin(0.5);
         enemy.colorId = colorId;
-        enemy.setPosition(this.game.config.width, Phaser.Math.Between(0, this.game.config.width + enemy.width));
+        enemy.setPosition(this.game.config.width, Phaser.Math.Between(0 + enemy.height, this.game.config.height - enemy.height));
         this.enemies.add(enemy);
         enemy.setVelocityX(-100);
     }
@@ -87,10 +90,27 @@ class GameScene extends Phaser.Scene {
             this.player.lives--;
             this.tiempo.setText('Vidas ' + this.player.lives);
             if (this.player.lives == 0) {
-                this.scene.start('MenuScene');
+                this.gameOver();
             }
         }
         enemy.destroy();
+    }
+    gameOver() {
+        this.timerEnemies.remove();
+        this.player.disableBody(true, true);
+        this.enemies.getChildren().forEach(enemy => {
+            enemy.disableBody(true, true);
+        });
+
+        this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 20, 'YA ME FUI LA BIKA G_G', this.style).setOrigin(0.5);
+        this.add.text(this.game.config.width / 2, this.game.config.height / 2 + 20, 'Puntaje obtenido: ' + this.score, this.style).setOrigin(0.5);
+        this.input.on('pointerdown', this.clickRestart, this);
+    }
+    clickRestart() {
+        this.restartClick++
+        if (this.restartClick == 2) {
+            this.scene.start('MenuScene');
+        }
     }
     update() {
         if (this.w.isDown) {
@@ -111,8 +131,13 @@ class GameScene extends Phaser.Scene {
                 this.player.colorId = 1;
             }
         }
+        this.enemies.getChildren().forEach(enemy => {
+            if (enemy.x + enemy.width/2 < 0) {
+                enemy.destroy();
+            }
+        });
     }
 
-    
+
 }
 export default GameScene
