@@ -61,7 +61,8 @@ class GameScene extends Phaser.Scene {
         });
     }
     createEnemy() {
-        const colorId = Phaser.Math.Between(0, this.colors.length);
+        const colorId = Phaser.Math.Between(0, this.colors.length - 1);
+        console.log(colorId);
         let enemy = this.physics.add.sprite(0, 0, this.colors[colorId]).setOrigin(0.5);
         enemy.colorId = colorId;
         enemy.setPosition(this.game.config.width, Phaser.Math.Between(0 + enemy.height, this.game.config.height - enemy.height));
@@ -73,7 +74,6 @@ class GameScene extends Phaser.Scene {
         if (this.player.colorId == enemy.colorId) {
             this.racha++;
             this.score += 10;
-            console.log(this.racha);
             if (this.racha == 3) {
                 this.multiplicadorDoble = true;
             }
