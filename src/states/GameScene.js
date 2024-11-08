@@ -69,6 +69,7 @@ class GameScene extends Phaser.Scene {
         enemy.setVelocityX(-100);
     }
     enemyCollition(player, enemy) {
+        enemy.disableBody(true, true);
         if (this.player.colorId == enemy.colorId) {
             this.racha++;
             this.score += 10;
@@ -104,12 +105,12 @@ class GameScene extends Phaser.Scene {
 
         this.add.text(this.game.config.width / 2, this.game.config.height / 2 - 20, 'YA ME FUI LA BIKA G_G', this.style).setOrigin(0.5);
         this.add.text(this.game.config.width / 2, this.game.config.height / 2 + 20, 'Puntaje obtenido: ' + this.score, this.style).setOrigin(0.5);
-        this.input.on('pointerdown', this.clickRestart, this);
+        this.input.on('pointerdown', () => {
+            this.scene.start('MenuScene');
+        }, this);
     }
     clickRestart() {
-        this.restartClick++
         if (this.restartClick == 2) {
-            this.scene.start('MenuScene');
         }
     }
     update() {
