@@ -4,8 +4,6 @@ class MenuScene extends Phaser.Scene{
     constructor(){
         super("MenuScene");
     }
-    preload(){
-    }
     create(){
         this.background = this.add.image(0,0,'menu').setOrigin(0,0);
         let style = { font: '30px Arial', fill: '#fff' };
